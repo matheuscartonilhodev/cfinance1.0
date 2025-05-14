@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Cartões{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Cadastrar Novo Cartão</h2>
+
+<form method="POST" class="mb-5">
+    <div class="mb-3">
+        <label for="name" class="form-label">Nome do Cartão</label>
+        <input type="text" class="form-control" name="name" id="name" required>
+    </div>
+    <div class="mb-3">
+        <label for="card_limit" class="form-label">Limite Total (R$)</label>
+        <input type="number" step="0.01" class="form-control" name="card_limit" id="card_limit" required>
+    </div>
+    <div class="mb-3">
+        <label for="closing_day" class="form-label">Dia de Fechamento da Fatura</label>
+        <input type="number" class="form-control" name="closing_day" id="closing_day" min="1" max="31" required>
+    </div>
+    <div class="mb-3">
+        <label for="due_day" class="form-label">Dia de Vencimento da Fatura</label>
+        <input type="number" class="form-control" name="due_day" id="due_day" min="1" max="31" required>
+    </div>
+    <button type="submit" class="btn btn-success">Cadastrar Cartão</button>
+</form>
+
+<h3>Cartões Cadastrados</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Limite (R$)</th>
+            <th>Fechamento</th>
+            <th>Vencimento</th>
+            <th>Excluir</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for card in cards %}
+        <tr>
+            <td>{{ card.name }}</td>
+            <td>{{ card.card_limit|currency }}</td>
+            <td>Todo dia {{ card.closing_day }}</td>
+            <td>Dia {{ card.due_day }}</td>
+            <td>
+                <form method="POST" action="/delete_card/{{ card.id }}">
+                    <button class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir este cartão?')">
+                        Excluir
+                    </button>
+                </form>
+            </td>            
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,156 @@
+<script>
+function fillEditForm(id, type_, amount, description){
+    document.getElementById('edit-expense-id').value = id;
+    document.getElementById('edit-expense-type').value = type_;
+    document.getElementById('edit-expense-description').value = description;
+    document.getElementById('edit-expense-amount').value = amount;
+
+    document.getElementById('editExpenseForm').action = '/update_expense/' + id;
+}
+</script>
+
+{% extends 'base.html' %}
+
+{% block title %}Despesas{% endblock %}
+
+{% block content %}
+
+<form method="GET" class="row mb-4">
+    <div class="col-md-3">
+        <select name="month" class="form-select">
+            <option value="">Mês</option>
+            {% for m in range(1, 13) %}
+            {% set m_str = "%02d"|format(m) %}
+            <option value="{{ m_str }}" {% if month == m_str %}selected{% endif %}>{{ m_str }}</option>
+
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <select name="year" class="form-select">
+            <option value="">Ano</option>
+            {% for y in range(2023, 2026) %}
+            <option value="{{ y }}" {% if year == y|string %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <select name="type_" class="form-select">
+            <option value="">Tipo</option>
+            {% for tipo in ['Mercado', 'Aluguel', 'Contas fixas', 'Transporte', 'Lazer', 'Saúde', 'Carro', 'Família', 'Outros'] %}
+            <option value="{{ tipo }}" {% if type_ == tipo %}selected{% endif %}>{{ tipo }}</option>
+            {% endfor %}
+        </select>          
+    </div>
+
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+</form>
+
+<h2>Adicionar Despesa</h2>
+<form method="POST" class="mb-4">
+    <select name="type_" class="form-control mb-2" required>
+        <option value="">Selecione a categoria</option>
+        <option value="Mercado">Mercado</option>
+        <option value="Aluguel">Aluguel</option>
+        <option value="Contas fixas">Contas fixas</option>
+        <option value="Transporte">Transporte</option>
+        <option value="Lazer">Lazer</option>
+        <option value="Saúde">Saúde</option>
+        <option value="Carro">Carro</option>
+        <option value="Família">Familia</option>
+        <option value="Outros">Outros</option>
+    </select>
+    <input type="number" step="0.01" name="amount" class="form-control mb-2" placeholder="Valor em R$">
+    <input type="text" name="description" class="form-control mb-2" placeholder="Descrição da despesa. Ex: Alimentação">
+    <input type="date" name="date" class="form-control mb-2">
+    <button type="submit" class="btn btn-success">Salvar</button>
+</form>
+
+<a href="/export/expenses?format=csv" class="btn btn-outline-success mb-2">Exportar CSV</a>
+<a href="/export/expenses?format=xlsx" class="btn btn-outline-primary mb-2">Exportar XLSX</a>
+
+<h3>Despesas Registradas</h3>
+<table class="table table-bordered">
+    <tr>
+        <th>Categoria</th>
+        <th>Valor (R$)</th>
+        <th>Descrição</th>
+        <th>Data</th>
+        <th>Status</th>
+    </tr>
+    {% for expense in expenses %}
+    <tr>
+        <td>{{ expense.type_ }}</td>
+        <td>{{ expense.amount|currency }}</td>
+        <td>{{ expense.description }}</td>
+        <td>{{ expense.date.strftime('%d/%m/%Y') }}</td>
+        <td>
+            <div class="d-flex flex-column align-items-center">
+                <form action="/toggle_status_expense/{{ expense.id }}" method="POST">
+                    <div class="form-check form-switch">
+                        <input class="form-switch form-check-input" type="checkbox"
+                            onchange="this.form.submit()"
+                            {% if expense.status == 'Efetivada' %}checked{% endif %}>
+                    </div>
+                </form>
+            </div>    
+        </td>
+        <td>
+            <form action="/del_expense/{{ expense.id }}" method="post">
+                <button class="btn btn-danger">Excluir</button>
+            </form>
+        </td>
+        <td>
+            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editExpenseModal"onclick="fillEditForm('{{ expense.id }}', '{{ expense.type_ }}', '{{ expense.amount }}', '{{ expense.description }}')">
+                Editar
+            </button>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+
+
+<div class="modal fade" id="editExpenseModal" tabindex="-1" aria-labelledby="editExpenseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+        <form method="POST" action="" id="editExpenseForm">
+            <div class="modal-header">
+            <h5 class="modal-title" id="editExpenseModalLabel">Editar Despesas</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+
+            <div class="modal-body">
+            <input type="hidden" name="id" id="edit-expense-id">
+
+            <div class="mb-3">
+                <label for="edit-expense-type" class="form-label">Tipo</label>
+                <input type="text" class="form-control" name="type_" id="edit-expense-type">
+            </div>
+
+            <div class="mb-3">
+                <label for="edit-expense-description" class="form-label">Descrição</label>
+                <input type="text" class="form-control" name="description" id="edit-expense-description">
+            </div>
+
+            <div class="mb-3">
+                <label for="edit-expense-amount" class="form-label">Valor</label>
+                <input type="number" step="0.01" class="form-control" name="amount" id="edit-expense-amount">
+            </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+            </div>
+
+        </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

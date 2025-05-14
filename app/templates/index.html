@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %} Início - Controle Financeiro {% endblock %}
+
+{% block content %}
+<h1 class="mb-3">Bem-vindo ao seu Controle Financeiro 💸</h1>
+<p>Use o menu acima para gerenciar suas receitas e despesas</p>
+
+<h2 class="mb-4">Painel Financeiro</h2>
+<p class="mb-3">Selecione o mês e ano.</p>
+<form method="get" class="row mb-4">
+    <div class="col-md-3">
+        <select name="month" class="form-select">
+            <option>Mês</option>
+            {% for m in range (1,13) %}
+                <option value="{{ '%02d'|format(m) }}">{{ '%02d'|format(m) }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <select name="year" class="form-select">
+            <option value="">Ano</option>
+            {% for y in range(2023, 2027) %}
+            <option value="{{ y }}">{{ y }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-primary w-50">Filtrar</button>
+    </div>
+</form>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total de Receitas</h5>
+                <p class="card-text">{{ total_income|currency }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total de Despesas</h5>
+                <p class="card-text">{{ total_expense|currency }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-dark mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Saldo Futuro</h5>
+                <p class="card-text">{{ balance|currency }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div class="row mt-5">
+    <div class="col-md-6 d-flex flex-column align-items-center">
+        <h5 class="mb-3">Distribuição de Receitas</h5>
+        <canvas id="incomeChart" width="300" height="300"></canvas>
+    </div>
+    <div class="col-md-6 d-flex flex-column align-items-center">
+        <h5 class="mb-3">Distribuição de Despesas</h5>
+        <canvas id="expenseChart" width="300" height="300"></canvas>
+    </div>
+    
+</div>
+
+
+<script>
+    const ctx = document.getElementById('incomeChart').getContext('2d');
+    const incomeChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: {{ incomes_labels|tojson }},
+            datasets: [{
+                label: 'Receitas',
+                data: {{ incomes_values|tojson }},
+                backgroundColor: [
+                    '#4CAF50', '#2196F3', '#FFC107', '#FF5722', '#9C27B0', '#795548'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    const atx = document.getElementById('expenseChart').getContext('2d');
+    const expenseChart = new Chart(atx, {
+        type: 'pie',
+        data: {
+            labels: {{ expenses_labels|tojson }},
+            datasets: [{
+                label: 'Despesas',
+                data: {{ expenses_values|tojson }},
+                backgroundColor: [
+                    '#4CAF50', '#2196F3', '#FFC107', '#FF5722', '#9C27B0', '#795548'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>
+
+
+{% endblock %}

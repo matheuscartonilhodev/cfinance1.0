@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Compras Parceladas{% endblock %}
+
+{% block content %}
+<h2>Cadastrar Compra Parcelada</h2>
+<form method="POST">
+  <div class="mb-3">
+    <label for="card_id" class="form-label">Cartão</label>
+    <select name="card_id" class="form-select" required>
+      <option value="">Selecione um cartão</option>
+      {% for card in cards %}
+        <option value="{{ card.id }}">{{ card.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label for="description" class="form-label">Descrição</label>
+    <input type="text" name="description" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label for="total_amount" class="form-label">Valor Total (R$)</label>
+    <input type="number" name="total_amount" class="form-control" step="0.01" required>
+  </div>
+  <div class="mb-3">
+    <label for="installments" class="form-label">Parcelas</label>
+    <input type="number" name="installments" class="form-control" min="1" required>
+  </div>
+  <div class="mb-3">
+    <label for="purchase_date" class="form-label">Data da Compra (opcional)</label>
+    <input type="date" name="purchase_date" class="form-control">
+  </div>
+  <button type="submit" class="btn btn-success">Registrar</button>
+</form>
+{% endblock %}

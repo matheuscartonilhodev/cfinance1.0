@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Controle Financeiro{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+</head>
+
+<script>
+    // Fecha alertas automaticamente após 4 segundos
+    setTimeout(function () {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function (alert) {
+            let fade = new bootstrap.Alert(alert);
+            fade.close();
+        });
+    }, 4000);
+</script>
+
+
+<body>
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/">Controle Financeiro</a>
+            <a class="nav-link text-white" href="/incomes">Receitas</a>
+            <a class="nav-link text-white" href="/expenses">Despesas</a>
+            <a class="nav-link text-white" href="/cards">Cartões</a>
+            <a class="nav-link text-white" href="/card_purchases">Compras Cartões</a>
+            <a class="nav-link text-white" href="/logout"> Logout</a>
+        </div>
+    </nav>
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+        <div id="toastContainer">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="toast align-items-center text-bg-{{ category }} border-0 mb-2 show" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body d-flex align-items-center">
+                                    {% if category == 'success' %}
+                                        <i class="bi bi-check-circle-fill me-2"></i>
+                                    {% elif category == 'danger' %}
+                                        <i class="bi bi-x-circle-fill me-2"></i>
+                                    {% elif category == 'warning' %}
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    {% elif category == 'info' %}
+                                        <i class="bi bi-info-circle-fill me-2"></i>
+                                    {% else %}
+                                        <i class="bi bi-bell-fill me-2"></i>
+                                    {% endif %}
+                                    {{ message }}
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="custom-footer text-center mt-5 mb-3">
+        <div class="container">
+            <div class="row align-items-center justify-content-center">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <p class="footer-text">Gostou do app? Considere apoiar o projeto! 💙</p>
+                    <p class="footer-text mt-2">Chave PIX: <strong>matheuscartonilho2@gmail.com</strong></p>
+                </div>
+                <div class="col-md-3">
+                    <img src="{{ url_for('static', filename='qrcode.png') }}" alt="QR Code para Doação" width="120" class="footer-qrcode">
+
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <style>
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+        }
+
+    </style>
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Inicializa e fecha os toasts automaticamente
+        document.querySelectorAll('.toast').forEach(function (toastEl) {
+            const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            toast.show();
+        });
+    </script>
+    
+
+</body>
+</html>

@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: controle-financeiro-app
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn run:app"
+    envVars:
+      - key: SECRET_KEY
+        value: cfinance_control_secret_key_version1
