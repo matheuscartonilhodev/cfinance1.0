@@ -51,3 +51,13 @@ class CardPurchase(db.Model):
     total_amount = db.Column(db.Float, nullable=False)
     installments = db.Column(db.Integer, nullable=False)
     purchase_date = db.Column(db.Date, nullable=False)
+
+class PasswordResetToken(db.Model):
+    __tablename__ = 'password_reset_tokens'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    token = db.Column(db.String(100), nullable=False, unique=True)
+    expiration = db.Column(db.DateTime, nullable=False)
+    
+    user = db.relationship('User')

@@ -1,41 +1,49 @@
-from datetime import datetime, date as dt
+from datetime import datetime, timedelta, date as dt
 from calendar import monthrange
 from app import db
 from app.models import Income, Expense, Card, CardPurchase
 from sqlalchemy import extract, func
+from dateutil.relativedelta import relativedelta
 
-def add_income(user_id, type_, description, amount, date=None):
+def add_income(user_id, type_, description, amount, date=None, is_recurring=False):
     today = dt.today()
     date = today if not date else datetime.strptime(date, '%Y-%m-%d').date()
     
-    status = 'Efetivada' if date <= today else 'Pendente'
-
-    new_income = Income(
-        user_id=user_id,
-        type_=type_,
-        description=description,
-        amount=amount,
-        date=date,
-        status=status
-    )
+    repeat = 6 if is_recurring else 1
     
-    db.session.add(new_income)
+    for i in range(repeat):
+        launch_date = date + relativedelta(months=i)
+        status = 'Efetivada' if launch_date <= today else 'Pendente'
+        new_income = Income(
+            user_id=user_id,
+            type_=type_,
+            description=description,
+            amount=amount,
+            date=launch_date,
+            status=status
+        )
+        db.session.add(new_income)
+    
     db.session.commit()
 
-def add_expense(user_id, type_, description, amount, date=None):
+def add_expense(user_id, type_, description, amount, date=None, is_recurring=False):
     today = dt.today()
     date = today if not date else datetime.strptime(date, '%Y-%m-%d').date()
-    status = 'Efetivada' if date <= today else 'Pendente'
-
-    new_expense = Expense(
-        user_id=user_id,
-        type_=type_,
-        description=description,
-        amount=amount,
-        date=date,
-        status=status
-    )
-    db.session.add(new_expense)
+    
+    repeat = 6 if is_recurring else 1
+    
+    for i in range(repeat):
+        launch_date = date + relativedelta(months=i)
+        status = 'Efetivada' if launch_date <= today else 'Pendente'
+        new_expense = Expense(
+            user_id=user_id,
+            type_=type_,
+            description=description,
+            amount=amount,
+            date=launch_date,
+            status=status
+        )
+        db.session.add(new_expense)
     db.session.commit()
 
 def list_incomes(user_id, month=None, year=None, type_=None):

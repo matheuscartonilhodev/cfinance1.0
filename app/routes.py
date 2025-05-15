@@ -1,15 +1,18 @@
-from app import app, db
+from app import app, db, mail
 from flask import render_template, request, redirect, session, flash, Response
 from app.services import (
     add_income, list_incomes, get_total_income, del_income, update_income_db, get_income_by_type,
     add_expense, list_expenses, get_total_expense, del_expense, update_expanse_db, get_expense_by_type,
     add_card, get_cards, delete_card, add_card_purchase
 )
-from app.models import User, Income, Expense
+from app.models import User, Income, Expense, PasswordResetToken
 from werkzeug.security import generate_password_hash, check_password_hash
 import io
 import xlsxwriter
 from datetime import datetime
+from flask_mail import Message
+import secrets
+from datetime import datetime, timedelta
 
 @app.route('/')
 def index():
@@ -108,7 +111,9 @@ def incomes():
         amount = float(request.form['amount'])
         type_ = request.form['type_']
         date = request.form.get('date') or None
-        add_income(user_id, type_, description, amount, date)
+        is_recurring = 'recurring' in request.form
+        
+        add_income(user_id, type_, description, amount, date, is_recurring)
         return redirect('/incomes')
     
     month = request.args.get('month')
@@ -135,7 +140,9 @@ def expenses():
         amount = float(request.form['amount'])
         type_ = request.form['type_']
         date = request.form.get('date') or None
-        add_expense(user_id, type_, description, amount, date)
+        is_recurring = 'recurring' in request.form
+        
+        add_expense(user_id, type_, description, amount, date, is_recurring)
         return redirect('/expenses')
     
     month = request.args.get('month')
@@ -368,3 +375,45 @@ def card_purchases():
         return redirect('/card_purchases')
     
     return render_template('card_purchases.html', cards=cards)
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        user = User.query.filter_by(email=email).first()
+        
+        if user:
+            token = secrets.token_urlsafe(32)
+            expiration = datetime.utcnow() + timedelta(hours=1)
+            
+            reset = PasswordResetToken(user_id=user.id, token=token, expiration=expiration)
+            db.session.add(reset)
+            db.session.commit()
+            
+            link = f'{request.host_url}reset-password/{token}'
+            msg = Message('Redefinir sua senha', recipients=[user.email])
+            msg.body = f'Olá {user.name}, \n\nClique no link abaixo para redefinir sua senha: \n{link}\n\nEste link expira em 1 hora.'
+            mail.send(msg)
+        flash('Se o email estiver cadastrado, um link foi enviado.', 'info')
+        return redirect('/login')
+    return render_template('forgot-password.html')
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    reset_token = PasswordResetToken.query.filter_by(token=token).first()
+
+    if not reset_token or reset_token.expiration < datetime.utcnow():
+        flash("Link inválido ou expirado.", "danger")
+        return redirect('/forgot-password')
+
+    if request.method == 'POST':
+        new_password = request.form['password']
+        user = reset_token.user
+        user.password = generate_password_hash(new_password)
+        db.session.delete(reset_token)
+        db.session.commit()
+        flash("Senha redefinida com sucesso!", "success")
+        return redirect('/login')
+
+    return render_template("reset_password.html")
+
